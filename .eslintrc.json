@@ -1,0 +1,46 @@
+{
+  "env": { "commonjs": true, "es2020": true, "node": true },
+  "extends": [
+    "airbnb",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
+    "plugin:react-hooks/recommended"
+  ],
+  "ignorePatterns": ["*.spec.js", ".*"],
+  "parserOptions": { "ecmaVersion": "latest", "sourceType": "module" },
+  "settings": { "react": { "version": "18.2" } },
+  "plugins": ["react-refresh", "import", "react", "react-hooks", "prettier"],
+  "rules": {
+    "semi": "off",
+    "no-unused-vars": "off",
+    "no-console": "off",
+    "no-plusplus": "off",
+    "no-shadow": "off",
+    "no-nested-ternary": "off",
+    "consistent-return": "off",
+    "no-restricted-syntax": ["off", "ForOfStatement"],
+    "prefer-arrow-callback": "error",
+    "require-await": "error",
+    "arrow-parens": ["error", "as-needed"],
+    "no-param-reassign": ["error", { "props": false }],
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowTernary": true,
+        "allowShortCircuit": true,
+        "allowTaggedTemplates": true
+      }
+    ],
+    "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreComments": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }
+    ]
+  }
+}
