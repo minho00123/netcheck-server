@@ -1,0 +1,71 @@
+const raw = require("raw-socket");
+const dgram = require("node:dgram");
+const dnsPromises = require("node:dns").promises;
+
+async function getIpAddress(url) {
+  try {
+    const { address, family } = await dnsPromises.lookup(url);
+    const targetIp = address;
+    const ipVersion = family;
+
+    return { targetIp, ipVersion };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function traceroute(url) {
+  return new Promise(async (resolve, reject) => {
+    const result = [];
+    const timeouts = {};
+    const port = 33434;
+    const maxHops = 30;
+    let ttl = 1;
+
+    const { targetIp, ipVersion } = await getIpAddress(url);
+    const udpSocket = dgram.createSocket(ipVersion === 6 ? "udp6" : "udp4");
+    const icmpSocket = raw.createSocket({ protocol: raw.Protocol.ICMP });
+
+    icmpSocket.on("message", (buffer, ip) => {
+      const portHex = buffer.toString("hex").substr(100, 4);
+      const portNumber = parseInt(portHex, 16);
+
+      if (ip && port === portNumber) {
+        const elapsedTime = process.hrtime.bigint() - timeouts[ttl - 1];
+        const data = {
+          hop: ttl - 1,
+          ipAddress: ip,
+          elapsedTime: Number(elapsedTime) / 1000000,
+        };
+
+        if (data) {
+          result.push(data);
+        }
+
+        if (ip === targetIp || ttl > maxHops) {
+          clearTimeout(intervalId);
+          udpSocket.close();
+          icmpSocket.close();
+          resolve(result);
+        }
+      }
+    });
+
+    function sendPacket() {
+      if (ttl <= maxHops) {
+        udpSocket.setTTL(ttl);
+        udpSocket.send(Buffer.alloc(0), 0, 0, port, targetIp);
+        timeouts[ttl] = process.hrtime.bigint();
+        ttl++;
+      }
+    }
+
+    udpSocket.bind(sendPacket);
+
+    const intervalId = setInterval(() => {
+      sendPacket();
+    }, 1000);
+  });
+}
+
+module.exports = traceroute;
