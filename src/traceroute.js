@@ -18,6 +18,7 @@ async function traceroute(url) {
   return new Promise(async (resolve, reject) => {
     const result = [];
     const timeouts = {};
+    const timeoutResponses = {};
     const port = 33434;
     const maxHops = 30;
     let ttl = 1;
@@ -31,6 +32,7 @@ async function traceroute(url) {
       const portNumber = parseInt(portHex, 16);
 
       if (ip && port === portNumber) {
+        clearTimeout(timeoutResponses[ttl - 1]);
         const elapsedTime = process.hrtime.bigint() - timeouts[ttl - 1];
         const data = {
           hop: ttl - 1,
@@ -38,9 +40,7 @@ async function traceroute(url) {
           elapsedTime: Number(elapsedTime) / 1000000,
         };
 
-        if (data) {
-          result.push(data);
-        }
+        result.push(data);
 
         if (ip === targetIp || ttl > maxHops) {
           clearTimeout(intervalId);
@@ -56,15 +56,22 @@ async function traceroute(url) {
         udpSocket.setTTL(ttl);
         udpSocket.send(Buffer.alloc(0), 0, 0, port, targetIp);
         timeouts[ttl] = process.hrtime.bigint();
+        timeoutResponses[ttl] = setTimeout(() => {
+          result.push({ hop: ttl, ipAddress: "Timeout", elapsedTime: -1 });
+          if (ttl >= maxHops) {
+            clearTimeout(intervalId);
+            udpSocket.close();
+            icmpSocket.close();
+            resolve(result);
+          }
+        }, 500);
         ttl++;
       }
     }
 
     udpSocket.bind(sendPacket);
 
-    const intervalId = setInterval(() => {
-      sendPacket();
-    }, 1000);
+    const intervalId = setInterval(sendPacket, 200);
   });
 }
 
