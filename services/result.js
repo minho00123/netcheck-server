@@ -1,5 +1,6 @@
-const traceroute = require("../src/traceroute");
 const ping = require("../src/ping");
+const bandwidth = require("../src/bandwidth");
+const traceroute = require("../src/traceroute");
 const dnsPromises = require("node:dns").promises;
 
 exports.processResult = async function (req, res) {
@@ -27,6 +28,7 @@ exports.processResult = async function (req, res) {
     city: locationInfo.city,
   };
   const pingResult = await ping(address, 10);
+  const bandwidthResult = await bandwidth(url);
 
-  return [tracerouteResult, urlInfo, pingResult];
+  return [tracerouteResult, urlInfo, pingResult, bandwidthResult];
 };
