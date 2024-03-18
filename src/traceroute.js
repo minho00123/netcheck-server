@@ -22,6 +22,8 @@ async function traceroute(url) {
     const port = 33434;
     const maxHops = 30;
     let ttl = 1;
+    let isUdpSocketClosed = false;
+    let isIcmpSocketClosed = false;
 
     const { targetIp, ipVersion } = await getIpAddress(url);
     const udpSocket = dgram.createSocket(ipVersion === 6 ? "udp6" : "udp4");
@@ -44,8 +46,14 @@ async function traceroute(url) {
 
         if (ip === targetIp || ttl > maxHops) {
           clearTimeout(intervalId);
-          udpSocket.close();
-          icmpSocket.close();
+          if (!isUdpSocketClosed) {
+            udpSocket.close();
+            isUdpSocketClosed = true;
+          }
+          if (!isIcmpSocketClosed) {
+            icmpSocket.close();
+            isIcmpSocketClosed = true;
+          }
           resolve(result);
         }
       }
@@ -60,8 +68,14 @@ async function traceroute(url) {
           result.push({ hop: ttl, ipAddress: "Timeout", elapsedTime: -1 });
           if (ttl >= maxHops) {
             clearTimeout(intervalId);
-            udpSocket.close();
-            icmpSocket.close();
+            if (!isUdpSocketClosed) {
+              udpSocket.close();
+              isUdpSocketClosed = true;
+            }
+            if (!isIcmpSocketClosed) {
+              icmpSocket.close();
+              isIcmpSocketClosed = true;
+            }
             resolve(result);
           }
         }, 500);

@@ -1,6 +1,7 @@
 const ping = require("../src/ping");
 const bandwidth = require("../src/bandwidth");
 const traceroute = require("../src/traceroute");
+const traffic = require("../src/traffic");
 const dnsPromises = require("node:dns").promises;
 
 exports.processResult = async function (req, res) {
@@ -29,6 +30,10 @@ exports.processResult = async function (req, res) {
   };
   const pingResult = await ping(address, 10);
   const bandwidthResult = await bandwidth(url);
+  const interval = 1000;
+  setInterval(() => {
+    traffic(url);
+  }, interval);
 
   return [tracerouteResult, urlInfo, pingResult, bandwidthResult];
 };
