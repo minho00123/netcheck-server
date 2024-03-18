@@ -1,8 +1,19 @@
 const ping = require("../src/ping");
+const traffic = require("../src/traffic");
 const bandwidth = require("../src/bandwidth");
 const traceroute = require("../src/traceroute");
-const traffic = require("../src/traffic");
+const Result = require("../models/Result");
 const dnsPromises = require("node:dns").promises;
+
+exports.getDbResult = async function (req, res) {
+  const { id: customId } = req.params;
+
+  const resultData = await Result.findOne({ customId });
+
+  if (resultData) {
+    return resultData;
+  }
+};
 
 exports.processResult = async function (req, res) {
   const { url } = req.body;
