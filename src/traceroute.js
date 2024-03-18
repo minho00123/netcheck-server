@@ -5,12 +5,12 @@ const dnsPromises = require("node:dns").promises;
 async function getIpAddress(url) {
   try {
     const { address, family } = await dnsPromises.lookup(url);
-    const targetIp = address;
-    const ipVersion = family;
 
-    return { targetIp, ipVersion };
+    return { targetIp: address, ipVersion: family };
   } catch (error) {
     console.error(error);
+
+    return null;
   }
 }
 
@@ -25,7 +25,15 @@ async function traceroute(url) {
     let isUdpSocketClosed = false;
     let isIcmpSocketClosed = false;
 
-    const { targetIp, ipVersion } = await getIpAddress(url);
+    const ipInfo = await getIpAddress(url);
+
+    if (!ipInfo) {
+      console.error(`Can't get the IP address of ${url}`);
+      resolve([]);
+      return;
+    }
+
+    const { targetIp, ipVersion } = ipInfo;
     const udpSocket = dgram.createSocket(ipVersion === 6 ? "udp6" : "udp4");
     const icmpSocket = raw.createSocket({ protocol: raw.Protocol.ICMP });
 
@@ -66,7 +74,7 @@ async function traceroute(url) {
         timeouts[ttl] = process.hrtime.bigint();
         timeoutResponses[ttl] = setTimeout(() => {
           result.push({ hop: ttl, ipAddress: "Timeout", elapsedTime: -1 });
-          if (ttl >= maxHops) {
+          if (ttl > maxHops) {
             clearTimeout(intervalId);
             if (!isUdpSocketClosed) {
               udpSocket.close();
@@ -78,7 +86,7 @@ async function traceroute(url) {
             }
             resolve(result);
           }
-        }, 500);
+        }, 200);
         ttl++;
       }
     }
