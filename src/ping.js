@@ -24,7 +24,7 @@ function createICMPPacket(sequenceNumber) {
   return header;
 }
 
-function ping(target, count, timeout = 1000) {
+function getPing(target, count, timeout = 1000) {
   return new Promise((resolve, reject) => {
     const socket = raw.createSocket({ protocol: raw.Protocol.ICMP });
     const sendTimes = {};
@@ -77,4 +77,4 @@ function ping(target, count, timeout = 1000) {
   });
 }
 
-module.exports = ping;
+module.exports = getPing;
