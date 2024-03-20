@@ -1,26 +1,48 @@
-const ping = require("../src/ping");
-const traffic = require("../src/traffic");
-const bandwidth = require("../src/bandwidth");
-const traceroute = require("../src/traceroute");
-const Result = require("../models/Result");
-const dnsPromises = require("node:dns").promises;
+const getPing = require("../src/ping");
+const getIpData = require("../src/ipAddress");
+const getSslData = require("../src/ssl");
+const getWhoisData = require("../src/domain");
+const getTracerouteData = require("../src/traceroute");
+const getHttpHeaderData = require("../src/httpHeader");
+const calculateBandwidth = require("../src/bandwidth");
+const getAvailabilityData = require("../src/availability");
 
-exports.getDbResult = async function (req, res) {
-  const { id: customId } = req.params;
+exports.processInformationData = async function (req, res) {
+  const { url } = req.body;
+  const { registrar, registerExpiryDate } = await getWhoisData(url);
+  const { ipAddress, city, country } = await getIpData(url);
 
-  const resultData = await Result.findOne({ customId });
-
-  if (resultData) {
-    return resultData;
-  }
+  return { registrar, registerExpiryDate, ipAddress, city, country };
 };
 
-exports.processResult = async function (req, res) {
+exports.processSecurityData = async function (req, res) {
   const { url } = req.body;
-  const modifiedUrl = url.slice(url.indexOf("/") + 2);
-  const tracerouteResult = await traceroute(modifiedUrl);
+  const { hsts, csp } = await getHttpHeaderData(url);
+  const { issuer, expiryDate } = await getSslData(url);
 
-  for (const data of tracerouteResult) {
+  return { issuer, expiryDate, hsts, csp };
+};
+
+exports.processReliabilityData = async function (req, res) {
+  const { url } = req.body;
+  const { ipAddress } = await getIpData(url);
+  const { statusCode, responseTime } = await getAvailabilityData(url);
+  const { sent, received, lossRate, latencies } = await getPing(ipAddress, 10);
+
+  return { statusCode, responseTime, sent, received, lossRate, latencies };
+};
+
+exports.processSpeedData = async function (req, res) {
+  const { url } = req.body;
+  const { bandwidth } = await calculateBandwidth(url);
+
+  return { bandwidth };
+};
+exports.processTracerouteData = async function (req, res) {
+  const { url } = req.body;
+  const result = await getTracerouteData(url);
+
+  for (const data of result) {
     const response = await fetch(`http://ip-api.com/json/${data.ipAddress}`);
     const res = await response.json();
 
@@ -29,22 +51,5 @@ exports.processResult = async function (req, res) {
     data.lat = res.lat;
     data.lon = res.lon;
   }
-
-  const { address } = await dnsPromises.lookup(modifiedUrl);
-  const locationResponse = await fetch(`http://ip-api.com/json/${address}`);
-  const locationInfo = await locationResponse.json();
-  const urlInfo = {
-    url,
-    ipAddress: address,
-    country: locationInfo.country,
-    city: locationInfo.city,
-  };
-  const pingResult = await ping(address, 10);
-  const bandwidthResult = await bandwidth(url);
-  const interval = 1000;
-  setInterval(() => {
-    traffic(url);
-  }, interval);
-
-  return [tracerouteResult, urlInfo, pingResult, bandwidthResult];
+  return result;
 };
