@@ -4,7 +4,9 @@ const dnsPromises = require("node:dns").promises;
 
 async function getIpAddress(url) {
   try {
-    const { address, family } = await dnsPromises.lookup(url);
+    const regex = /^(https?:\/\/)?/;
+    const modifiedUrl = url.replace(regex, "");
+    const { address, family } = await dnsPromises.lookup(modifiedUrl);
 
     return { targetIp: address, ipVersion: family };
   } catch (error) {
@@ -14,7 +16,7 @@ async function getIpAddress(url) {
   }
 }
 
-async function traceroute(url) {
+async function getTracerouteData(url) {
   return new Promise(async (resolve, reject) => {
     const result = [];
     const timeouts = {};
@@ -29,7 +31,7 @@ async function traceroute(url) {
 
     if (!ipInfo) {
       console.error(`Can't get the IP address of ${url}`);
-      resolve([]);
+      resolve({ error: `Can't get the IP address of ${url}` });
       return;
     }
 
@@ -97,4 +99,4 @@ async function traceroute(url) {
   });
 }
 
-module.exports = traceroute;
+module.exports = getTracerouteData;
