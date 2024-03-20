@@ -1,8 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { getResult, postResult } = require("../controllers/result.controller");
+const {
+  postSpeedData,
+  postSecurityData,
+  postTracerouteData,
+  postInformationData,
+  postReliabilityData,
+} = require("../controllers/result.controller");
 
-router.get("/result/:id", getResult);
-router.post("/result/:id", postResult);
+router.post("/result/speed", postSpeedData);
+router.post("/result/security", postSecurityData);
+router.post("/result/traceroute", postTracerouteData);
+router.post("/result/information", postInformationData);
+router.post("/result/reliability", postReliabilityData);
 
 module.exports = router;
