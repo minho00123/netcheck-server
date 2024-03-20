@@ -1,23 +1,57 @@
-const { getDbResult, processResult } = require("../services/result");
+const {
+  processSpeedData,
+  processSecurityData,
+  processTracerouteData,
+  processInformationData,
+  processReliabilityData,
+} = require("../services/result");
 
-exports.getResult = async (req, res) => {
+exports.postInformationData = async function (req, res) {
   try {
-    const result = await getDbResult(req);
+    const result = await processInformationData(req);
 
     res.status(200).send(result);
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message: "Server Error", error: error.message });
   }
 };
 
-exports.postResult = async (req, res) => {
+exports.postSecurityData = async function (req, res) {
   try {
-    const result = await processResult(req);
+    const result = await processSecurityData(req);
 
     res.status(200).send(result);
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message: "Server Error", error: error.message });
+  }
+};
+
+exports.postReliabilityData = async function (req, res) {
+  try {
+    const result = await processReliabilityData(req);
+
+    res.status(200).send(result);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postSpeedData = async function (req, res) {
+  try {
+    const result = await processSpeedData(req);
+
+    res.status(200).send(result);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postTracerouteData = async function (req, res) {
+  try {
+    const result = await processTracerouteData(req);
+
+    res.status(200).send(result);
+  } catch (error) {
+    console.error(error);
   }
 };
