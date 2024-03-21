@@ -16,8 +16,6 @@ function getSslData(url) {
 
       if (cert.issuer) {
         resolve({ issuer: cert.issuer.O, expiryDate: cert.valid_to });
-      } else {
-        reject(new Error("Certificate not found"));
       }
     });
 

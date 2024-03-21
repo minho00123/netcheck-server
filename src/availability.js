@@ -4,13 +4,15 @@ function getAvailabilityData(url) {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
 
-    https.get(url, res => {
-      const { statusCode } = res;
-      const endTime = Date.now();
-      const responseTime = endTime - startTime;
+    if (url) {
+      https.get(url, res => {
+        const { statusCode } = res;
+        const endTime = Date.now();
+        const responseTime = endTime - startTime;
 
-      resolve({ statusCode, responseTime });
-    });
+        resolve({ statusCode, responseTime });
+      });
+    }
   });
 }
 

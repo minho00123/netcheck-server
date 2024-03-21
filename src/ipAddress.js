@@ -1,3 +1,4 @@
+const axios = require("axios");
 const dnsPromises = require("node:dns").promises;
 
 async function getIpAddress(url) {
@@ -14,18 +15,27 @@ async function getIpAddress(url) {
 
 async function getIpData(url) {
   return new Promise(async (resolve, reject) => {
-    const regex = /^(https?:\/\/)?/;
-    const modifiedUrl = url.replace(regex, "");
-    const ipInfo = await getIpAddress(modifiedUrl);
-    const { targetIp } = ipInfo;
-    const locationResponse = await fetch(`http://ip-api.com/json/${targetIp}`);
-    const locationInfo = await locationResponse.json();
+    if (url) {
+      const regex = /^(https?:\/\/)?/;
+      const modifiedUrl = url.replace(regex, "");
+      const ipInfo = await getIpAddress(modifiedUrl);
+      const { targetIp } = ipInfo;
 
-    resolve({
-      ipAddress: targetIp,
-      city: locationInfo.city,
-      country: locationInfo.country,
-    });
+      try {
+        const locationResponse = await axios(
+          `http://ip-api.com/json/${targetIp}`,
+        );
+
+        resolve({
+          ipAddress: targetIp,
+          city: locationResponse.data.city,
+          country: locationResponse.data.country,
+        });
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
   });
 }
 

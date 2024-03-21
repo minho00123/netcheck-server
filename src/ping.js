@@ -29,6 +29,7 @@ function getPing(target, count, timeout = 1000) {
     const socket = raw.createSocket({ protocol: raw.Protocol.ICMP });
     const sendTimes = {};
     const timeoutHandlers = {};
+    const latencies = [];
     let receivedCount = 0;
     let sequenceNumber = 0;
 
@@ -37,6 +38,10 @@ function getPing(target, count, timeout = 1000) {
       const seqNumber = buffer.readUInt16BE(26);
 
       if (identifier === process.pid && sendTimes[seqNumber]) {
+        const currentTime = Date.now();
+        const latency = currentTime - sendTimes[seqNumber];
+
+        latencies.push(latency);
         receivedCount++;
         clearTimeout(timeoutHandlers[seqNumber]);
 
@@ -52,7 +57,12 @@ function getPing(target, count, timeout = 1000) {
           const lossRate = ((count - receivedCount) / count) * 100;
 
           socket.close();
-          resolve({ sent: count, received: receivedCount, lossRate });
+          resolve({
+            sent: count,
+            received: receivedCount,
+            lossRate,
+            latencies,
+          });
         }, timeout);
         return;
       }
