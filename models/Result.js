@@ -1,5 +1,36 @@
 const mongoose = require("mongoose");
 
+const informationSchema = new mongoose.Schema({
+  registrar: String,
+  registerExpiryDate: String,
+  ipAddress: String,
+  city: String,
+  country: String,
+});
+
+const securitySchema = new mongoose.Schema({
+  hsts: String,
+  csp: String,
+  issuer: String,
+  expiryDate: String,
+});
+
+const reliabilitySchema = new mongoose.Schema({
+  statusCode: Number,
+  responseTime: String,
+  sent: Number,
+  received: Number,
+  lossRate: Number,
+  latencies: Array,
+});
+
+const speedSchema = new mongoose.Schema({
+  bandwidth: Number,
+  maxLatency: Number,
+  minLatency: Number,
+  averageLatency: Number,
+});
+
 const tracerouteDataSchema = new mongoose.Schema({
   hop: Number,
   ipAddress: String,
@@ -10,38 +41,15 @@ const tracerouteDataSchema = new mongoose.Schema({
   lon: Number,
 });
 
-const urlInfoSchema = new mongoose.Schema({
-  url: String,
-  ipAddress: String,
-  country: String,
-  city: String,
-});
-
-const pingResultSchema = new mongoose.Schema({
-  sent: Number,
-  received: Number,
-  lossRate: Number,
-});
-
-const bandwidthResultSchema = new mongoose.Schema({
-  totalMegabits: Number,
-  durationInSeconds: Number,
-  bandwidth: Number,
-});
-
-const trafficResultSchema = new mongoose.Schema({
-  timestamp: String,
-  dataSize: Number,
-  url: String,
-});
-
 const resultSchema = new mongoose.Schema({
   customId: String,
-  urlInfo: urlInfoSchema,
-  pingData: pingResultSchema,
+  url: String,
+  serverRegion: String,
   createdAt: { type: Date, default: Date.now },
-  trafficData: [trafficResultSchema],
-  bandwidthData: bandwidthResultSchema,
+  informationData: informationSchema,
+  securityData: securitySchema,
+  reliabilityData: reliabilitySchema,
+  speedData: speedSchema,
   tracerouteData: [tracerouteDataSchema],
 });
 
