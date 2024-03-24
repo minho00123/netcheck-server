@@ -1,59 +1,99 @@
-const axios = require("axios");
-const getPing = require("../src/ping");
+const ping = require("../src/ping");
 const getIpData = require("../src/ipAddress");
 const getSslData = require("../src/ssl");
 const getWhoisData = require("../src/domain");
-const getTracerouteData = require("../src/traceroute");
 const getHttpHeaderData = require("../src/httpHeader");
+const getTracerouteData = require("../src/traceroute");
 const calculateBandwidth = require("../src/bandwidth");
 const getAvailabilityData = require("../src/availability");
+const Result = require("../models/Result");
 
-exports.processInformationData = async function (req, res) {
-  const { url } = req.body;
+exports.processDataAll = async function (req, res) {
+  const { id, url, serverRegion } = req.body;
   const { registrar, registerExpiryDate } = await getWhoisData(url);
   const { ipAddress, city, country } = await getIpData(url);
+  const informationData = {
+    registrar,
+    registerExpiryDate,
+    ipAddress,
+    city,
+    country,
+  };
 
-  return { registrar, registerExpiryDate, ipAddress, city, country };
-};
-
-exports.processSecurityData = async function (req, res) {
-  const { url } = req.body;
   const { hsts, csp } = await getHttpHeaderData(url);
   const { issuer, expiryDate } = await getSslData(url);
+  const securityData = {
+    hsts,
+    csp,
+    issuer,
+    expiryDate,
+  };
 
-  return { issuer, expiryDate, hsts, csp };
-};
-
-exports.processReliabilityData = async function (req, res) {
-  const { url } = req.body;
-  const { ipAddress } = await getIpData(url);
   const { statusCode, responseTime } = await getAvailabilityData(url);
-  const { sent, received, lossRate, latencies } = await getPing(ipAddress, 10);
+  const { sent, received, lossRate, latencies } = await ping(ipAddress, 10);
+  const reliabilityData = {
+    statusCode,
+    responseTime,
+    sent,
+    received,
+    lossRate,
+    latencies,
+  };
 
-  return { statusCode, responseTime, sent, received, lossRate, latencies };
-};
-
-exports.processSpeedData = async function (req, res) {
-  const { url } = req.body;
   const { bandwidth } = await calculateBandwidth(url);
+  const averageLatency =
+    latencies.reduce((a, b) => a + b, 0) / latencies.length;
+  const speedData = {
+    bandwidth: bandwidth.toFixed(2),
+    maxLatency: Math.max(...latencies),
+    minLatency: Math.min(...latencies),
+    averageLatency: averageLatency.toFixed(2),
+  };
 
-  return { bandwidth };
+  const tracerouteData = await getTracerouteData(url);
+
+  for (const data of tracerouteData) {
+    const response = await fetch(`http://ip-api.com/json/${data.ipAddress}`);
+    const res = await response.json();
+
+    data.country = res.country;
+    data.city = res.city;
+    data.lat = res.lat;
+    data.lon = res.lon;
+  }
+
+  const result = new Result({
+    customId: id,
+    url,
+    serverRegion,
+    informationData,
+    securityData,
+    reliabilityData,
+    speedData,
+    tracerouteData,
+  });
+
+  await result.save();
+
+  return {
+    informationData,
+    securityData,
+    reliabilityData,
+    speedData,
+    tracerouteData,
+  };
 };
 
-exports.processTracerouteData = async function (req, res) {
+exports.processHistoryData = async function (req, res) {
   const { url } = req.body;
+  const historyData = await Result.collection.find({ url }).toArray();
 
-  if (url) {
-    const result = await getTracerouteData(url);
+  return historyData;
+};
 
-    for (const data of result) {
-      const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
+exports.processHistoryIdData = async function (req, res) {
+  const { customId } = req.body;
+  const historyData = await Result.collection.find({ customId }).toArray();
 
-      data.country = response.data.country;
-      data.city = response.data.city;
-      data.lat = response.data.lat;
-      data.lon = response.data.lon;
-    }
-    return result;
-  }
+  return historyData;
 };
