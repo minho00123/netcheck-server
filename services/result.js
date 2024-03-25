@@ -56,9 +56,10 @@ exports.processDataAll = async function (req, res) {
   }
 
   const tracerouteData = await getTracerouteData(url);
+  const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
 
-  if (tracerouteData && tracerouteData.length > 0) {
-    for (const data of tracerouteData) {
+  if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
+    for (const data of uniqueTracerouteData) {
       const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
 
       data.country = response.data.country;
@@ -66,6 +67,20 @@ exports.processDataAll = async function (req, res) {
       data.lat = response.data.lat;
       data.lon = response.data.lon;
     }
+  }
+
+  function extractUniqueTracerouteData(data) {
+    const uniqueHops = [];
+    const seenHops = new Set();
+
+    for (const item of data) {
+      if (!seenHops.has(item.hop)) {
+        seenHops.add(item.hop);
+        uniqueHops.push(item);
+      }
+    }
+
+    return uniqueHops;
   }
 
   const result = new Result({
