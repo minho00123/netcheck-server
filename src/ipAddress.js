@@ -14,29 +14,27 @@ async function getIpAddress(url) {
 }
 
 async function getIpData(url) {
-  return new Promise(async (resolve, reject) => {
-    if (url) {
-      const regex = /^(https?:\/\/)?/;
-      const modifiedUrl = url.replace(regex, "");
-      const ipInfo = await getIpAddress(modifiedUrl);
-      const { targetIp } = ipInfo;
+  if (url) {
+    const regex = /^(https?:\/\/)?/;
+    const modifiedUrl = url.replace(regex, "");
+    const ipInfo = await getIpAddress(modifiedUrl);
 
+    if (ipInfo) {
       try {
+        const { targetIp } = ipInfo;
         const locationResponse = await axios(
           `http://ip-api.com/json/${targetIp}`,
         );
-
-        resolve({
+        return {
           ipAddress: targetIp,
           city: locationResponse.data.city,
           country: locationResponse.data.country,
-        });
+        };
       } catch (error) {
         console.error(error);
-        return null;
       }
     }
-  });
+  }
 }
 
 module.exports = getIpData;

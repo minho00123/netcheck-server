@@ -1,3 +1,4 @@
+const axios = require("axios");
 const ping = require("../src/ping");
 const getIpData = require("../src/ipAddress");
 const getSslData = require("../src/ssl");
@@ -52,14 +53,15 @@ exports.processDataAll = async function (req, res) {
 
   const tracerouteData = await getTracerouteData(url);
 
-  for (const data of tracerouteData) {
-    const response = await fetch(`http://ip-api.com/json/${data.ipAddress}`);
-    const res = await response.json();
+  if (tracerouteData && tracerouteData.length > 0) {
+    for (const data of tracerouteData) {
+      const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
 
-    data.country = res.country;
-    data.city = res.city;
-    data.lat = res.lat;
-    data.lon = res.lon;
+      data.country = response.data.country;
+      data.city = response.data.city;
+      data.lat = response.data.lat;
+      data.lon = response.data.lon;
+    }
   }
 
   const result = new Result({

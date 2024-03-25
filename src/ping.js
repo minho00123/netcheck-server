@@ -1,14 +1,6 @@
 const raw = require("raw-socket");
 
-function createICMPPacket(sequenceNumber) {
-  const header = Buffer.alloc(8);
-
-  header.writeUInt8(8, 0);
-  header.writeUInt8(0, 1);
-  header.writeUInt16BE(0, 2);
-  header.writeUInt16BE(process.pid & 0xffff, 4);
-  header.writeUInt16BE(sequenceNumber, 6);
-
+function calculateChecksum(header) {
   let checksum = 0;
 
   for (let i = 0; i < header.length; i += 2) {
@@ -17,9 +9,18 @@ function createICMPPacket(sequenceNumber) {
 
   checksum = (checksum >> 16) + (checksum & 0xffff);
   checksum += checksum >> 16;
-  checksum = ~checksum & 0xffff;
+  return ~checksum & 0xffff;
+}
 
-  header.writeUInt16BE(checksum, 2);
+function createICMPPacket(sequenceNumber) {
+  const header = Buffer.alloc(8);
+
+  header.writeUInt8(8, 0);
+  header.writeUInt8(0, 1);
+  header.writeUInt16BE(0, 2);
+  header.writeUInt16BE(process.pid & 0xffff, 4);
+  header.writeUInt16BE(sequenceNumber, 6);
+  header.writeUInt16BE(calculateChecksum(header), 2);
 
   return header;
 }
@@ -33,13 +34,12 @@ function getPing(target, count, timeout = 1000) {
     let receivedCount = 0;
     let sequenceNumber = 0;
 
-    socket.on("message", (buffer, source, info) => {
+    socket.on("message", buffer => {
       const identifier = buffer.readUInt16BE(24);
       const seqNumber = buffer.readUInt16BE(26);
 
-      if (identifier === process.pid && sendTimes[seqNumber]) {
-        const currentTime = Date.now();
-        const latency = currentTime - sendTimes[seqNumber];
+      if (identifier === process.pid && sendTimes[seqNumber] !== undefined) {
+        const latency = Date.now() - sendTimes[seqNumber];
 
         latencies.push(latency);
         receivedCount++;
@@ -53,14 +53,14 @@ function getPing(target, count, timeout = 1000) {
     const interval = setInterval(() => {
       if (sequenceNumber >= count) {
         clearInterval(interval);
-        setTimeout(() => {
-          const lossRate = ((count - receivedCount) / count) * 100;
+        Object.keys(timeoutHandlers).forEach(clearTimeout);
 
+        setTimeout(() => {
           socket.close();
           resolve({
             sent: count,
             received: receivedCount,
-            lossRate,
+            lossRate: ((count - receivedCount) / count) * 100,
             latencies,
           });
         }, timeout);
@@ -73,9 +73,11 @@ function getPing(target, count, timeout = 1000) {
 
       sendTimes[sequenceNumber] = Date.now();
 
-      socket.send(packet, 0, packet.length, target, (err, bytes) => {
+      socket.send(packet, 0, packet.length, target, err => {
         if (err) {
           console.error(err);
+          clearInterval(interval);
+          Object.keys(timeoutHandlers).forEach(clearTimeout);
         }
       });
 
