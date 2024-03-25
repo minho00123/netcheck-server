@@ -42,14 +42,18 @@ exports.processDataAll = async function (req, res) {
   };
 
   const { bandwidth } = await calculateBandwidth(url);
-  const averageLatency =
-    latencies.reduce((a, b) => a + b, 0) / latencies.length;
-  const speedData = {
-    bandwidth: bandwidth.toFixed(2),
-    maxLatency: Math.max(...latencies),
-    minLatency: Math.min(...latencies),
-    averageLatency: averageLatency.toFixed(2),
-  };
+  let speedData = {};
+
+  if (latencies.length > 0) {
+    const averageLatency =
+      latencies.reduce((a, b) => a + b, 0) / latencies.length;
+    speedData = {
+      bandwidth: bandwidth.toFixed(2),
+      maxLatency: Math.max(...latencies),
+      minLatency: Math.min(...latencies),
+      averageLatency: averageLatency.toFixed(2),
+    };
+  }
 
   const tracerouteData = await getTracerouteData(url);
 
