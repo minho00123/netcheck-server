@@ -1,7 +1,6 @@
-const Result = require("../models/Result");
 const nodemailer = require("nodemailer");
 
-const sendEmail = async (email, url) => {
+async function sendEmail(email, url) {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -23,16 +22,13 @@ const sendEmail = async (email, url) => {
     console.error("Error sending email: ", error);
     return { success: false, message: "Error sending email." };
   }
-};
+}
 
 exports.saveResult = async function (data) {
-  const result = new Result(data);
-
   try {
-    const savedResult = await result.save();
     const url = "http://localhost:5173/result/" + data.customId;
 
-    if ((savedResult && data.email, url)) {
+    if ((data.email, url)) {
       await sendEmail(data.email, url);
     }
   } catch (error) {
