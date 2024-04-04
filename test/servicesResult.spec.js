@@ -36,7 +36,7 @@ axios.mockImplementation(() =>
   }),
 );
 
-describe("processDataAll function", () => {
+describe("services/result.js tests", () => {
   it("Should process all data correctly", async () => {
     getWhoisData.mockResolvedValue({
       registrar: "Registrar",
