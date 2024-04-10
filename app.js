@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: true,
+    origin: "https://client.netcheck.site",
     credentials: true,
   }),
 );
