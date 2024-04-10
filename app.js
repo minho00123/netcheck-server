@@ -10,7 +10,7 @@ const share = require("./routes/share");
 
 app.use(
   cors({
-    origin: "*",
+    origin: true,
     credentials: true,
   }),
 );
