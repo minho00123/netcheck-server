@@ -8,7 +8,12 @@ const app = express();
 const result = require("./routes/result");
 const share = require("./routes/share");
 
-app.use(cors("https://client.netcheck.site/"));
+app.use(
+  cors({
+    origin: "https://client.netcheck.site/",
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(result);
 app.use(share);
