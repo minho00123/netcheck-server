@@ -55,19 +55,19 @@ exports.processDataAll = async function (req, res) {
     };
   }
 
-  const tracerouteData = await getTracerouteData(url);
-  const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
+  // const tracerouteData = await getTracerouteData(url);
+  // const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
 
-  if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
-    for (const data of uniqueTracerouteData) {
-      const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
+  // if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
+  //   for (const data of uniqueTracerouteData) {
+  //     const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
 
-      data.country = response.data.country;
-      data.city = response.data.city;
-      data.lat = response.data.lat;
-      data.lon = response.data.lon;
-    }
-  }
+  //     data.country = response.data.country;
+  //     data.city = response.data.city;
+  //     data.lat = response.data.lat;
+  //     data.lon = response.data.lon;
+  //   }
+  // }
 
   function extractUniqueTracerouteData(data) {
     const uniqueHops = [];
@@ -82,7 +82,14 @@ exports.processDataAll = async function (req, res) {
 
     return uniqueHops;
   }
-
+  const tracerouteData = [
+    {
+      country: "South Korea",
+      city: "Seoul",
+      lat: 32,
+      lon: 10,
+    },
+  ];
   const result = new Result({
     customId: id,
     url,
