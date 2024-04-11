@@ -60,7 +60,7 @@ exports.processDataAll = async function (req, res) {
 
   if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
     for (const data of uniqueTracerouteData) {
-      const response = await axios(`https://ip-api.com/json/${data.ipAddress}`);
+      const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
 
       data.country = response.data.country;
       data.city = response.data.city;

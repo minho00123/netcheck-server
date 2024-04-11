@@ -23,7 +23,7 @@ async function getIpData(url) {
       try {
         const { targetIp } = ipInfo;
         const locationResponse = await axios(
-          `https://ip-api.com/json/${targetIp}`,
+          `http://ip-api.com/json/${targetIp}`,
         );
         return {
           ipAddress: targetIp,
