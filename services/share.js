@@ -26,7 +26,7 @@ async function sendEmail(email, url) {
 
 exports.saveResult = async function (data) {
   try {
-    const url = "http://localhost:5173/result/" + data.customId;
+    const url = "https://client.netcheck.site/result/" + data.customId;
 
     if ((data.email, url)) {
       await sendEmail(data.email, url);

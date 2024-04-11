@@ -7,15 +7,15 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://client.netcheck.site",
+    origin: "*",
     credentials: true,
   }),
 );
+app.use(express.json());
 
 const result = require("./routes/result");
 const share = require("./routes/share");
 
-app.use(express.json());
 app.use(result);
 app.use(share);
 
