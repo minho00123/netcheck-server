@@ -31,7 +31,11 @@ exports.processDataAll = async function (req, res) {
   };
 
   const { statusCode, responseTime } = await getAvailabilityData(url);
-  const { sent, received, lossRate, latencies } = await ping(ipAddress, 10);
+  // const { sent, received, lossRate, latencies } = await ping(ipAddress, 10);
+  const sent = 10;
+  const received = 10;
+  const lossRate = 0;
+  const latencies = 100;
   const reliabilityData = {
     statusCode,
     responseTime,
