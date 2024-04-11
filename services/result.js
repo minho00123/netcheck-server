@@ -1,6 +1,6 @@
 const axios = require("axios");
 const ping = require("../src/ping");
-// const getIpData = require("../src/ipAddress");
+const getIpData = require("../src/ipAddress");
 const getSslData = require("../src/ssl");
 const getWhoisData = require("../src/domain");
 const getHttpHeaderData = require("../src/httpHeader");
@@ -12,10 +12,7 @@ const Result = require("../models/Result");
 exports.processDataAll = async function (req, res) {
   const { id, url, serverRegion } = req.body;
   const { registrar, registerExpiryDate } = await getWhoisData(url);
-  // const { ipAddress, city, country } = await getIpData(url);
-  const ipAddress = "8.8.8.8";
-  const city = "Seoul";
-  const country = "South Korea";
+  const { ipAddress, city, country } = await getIpData(url);
   const informationData = {
     registrar,
     registerExpiryDate,
@@ -61,16 +58,16 @@ exports.processDataAll = async function (req, res) {
   const tracerouteData = await getTracerouteData(url);
   const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
 
-  // if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
-  //   for (const data of uniqueTracerouteData) {
-  //     const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
+  if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
+    for (const data of uniqueTracerouteData) {
+      const response = await axios(`http://ip-api.com/json/${data.ipAddress}`);
 
-  //     data.country = response.data.country;
-  //     data.city = response.data.city;
-  //     data.lat = response.data.lat;
-  //     data.lon = response.data.lon;
-  //   }
-  // }
+      data.country = response.data.country;
+      data.city = response.data.city;
+      data.lat = response.data.lat;
+      data.lon = response.data.lon;
+    }
+  }
 
   function extractUniqueTracerouteData(data) {
     const uniqueHops = [];
