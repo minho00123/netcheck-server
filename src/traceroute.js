@@ -11,7 +11,6 @@ async function getIpAddress(url) {
     return { targetIp: address, ipVersion: family };
   } catch (error) {
     console.error(error);
-
     return null;
   }
 }
@@ -23,6 +22,8 @@ async function getTracerouteData(url) {
     const timeoutResponses = {};
     const port = 33434;
     const maxHops = 30;
+    const packetInterval = 50;
+    const hopTimeout = 150;
     let ttl = 1;
     let isUdpSocketClosed = false;
     let isIcmpSocketClosed = false;
@@ -88,14 +89,14 @@ async function getTracerouteData(url) {
             }
             resolve(result);
           }
-        }, 200);
+        }, hopTimeout);
         ttl++;
       }
     }
 
     udpSocket.bind(sendPacket);
 
-    const intervalId = setInterval(sendPacket, 200);
+    const intervalId = setInterval(sendPacket, packetInterval);
   });
 }
 
