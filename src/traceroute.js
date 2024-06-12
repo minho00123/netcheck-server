@@ -22,8 +22,8 @@ async function getTracerouteData(url) {
     const timeoutResponses = {};
     const port = 33434;
     const maxHops = 30;
-    const packetInterval = 50;
-    const hopTimeout = 150;
+    const packetInterval = 10;
+    const hopTimeout = 50;
     let ttl = 1;
     let isUdpSocketClosed = false;
     let isIcmpSocketClosed = false;
