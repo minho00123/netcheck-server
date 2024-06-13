@@ -18,27 +18,10 @@ const securitySchema = new mongoose.Schema({
 const reliabilitySchema = new mongoose.Schema({
   statusCode: Number,
   responseTime: String,
-  sent: Number,
-  received: Number,
-  lossRate: Number,
-  latencies: Array,
 });
 
 const speedSchema = new mongoose.Schema({
   bandwidth: Number,
-  maxLatency: Number,
-  minLatency: Number,
-  averageLatency: Number,
-});
-
-const tracerouteDataSchema = new mongoose.Schema({
-  hop: Number,
-  ipAddress: String,
-  elapsedTime: Number,
-  country: String,
-  city: String,
-  lat: Number,
-  lon: Number,
 });
 
 const resultSchema = new mongoose.Schema({
@@ -50,7 +33,6 @@ const resultSchema = new mongoose.Schema({
   securityData: securitySchema,
   reliabilityData: reliabilitySchema,
   speedData: speedSchema,
-  tracerouteData: [tracerouteDataSchema],
 });
 
 module.exports = mongoose.model("Result", resultSchema);

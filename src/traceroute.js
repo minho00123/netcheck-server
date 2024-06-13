@@ -22,8 +22,6 @@ async function getTracerouteData(url) {
     const timeoutResponses = {};
     const port = 33434;
     const maxHops = 30;
-    const packetInterval = 10;
-    const hopTimeout = 50;
     let ttl = 1;
     let isUdpSocketClosed = false;
     let isIcmpSocketClosed = false;
@@ -89,14 +87,14 @@ async function getTracerouteData(url) {
             }
             resolve(result);
           }
-        }, hopTimeout);
+        }, 200);
         ttl++;
       }
     }
 
     udpSocket.bind(sendPacket);
 
-    const intervalId = setInterval(sendPacket, packetInterval);
+    const intervalId = setInterval(sendPacket, 200);
   });
 }
 

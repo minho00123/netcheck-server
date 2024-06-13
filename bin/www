@@ -3,11 +3,16 @@
 const app = require("../app");
 const debug = require("debug")("netcheck-server:server");
 const http = require("http");
+const WebSocket = require("ws");
+const getTracerouteData = require("../src/traceroute.js");
+const ping = require("../src/ping.js");
 
 const port = normalizePort(process.env.PORT || "8000");
+
 app.set("port", port);
 
 const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
 server.listen(port);
 server.on("error", onError);
@@ -51,5 +56,53 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+
   debug("Listening on " + bind);
 }
+
+const dnsPromises = require("node:dns").promises;
+
+async function getIpAddress(url) {
+  try {
+    const regex = /^(https?:\/\/)?/;
+    const modifiedUrl = url.replace(regex, "");
+    const { address, family } = await dnsPromises.lookup(modifiedUrl);
+
+    return { targetIp: address, ipVersion: family };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+wss.on("connection", ws => {
+  console.log("Client connected");
+
+  ws.on("message", async message => {
+    const { url } = JSON.parse(message);
+    const ipAddress = await getIpAddress(url);
+    const traceroute = await getTracerouteData(url);
+    const pingData = [];
+    const tracerouteData = [];
+
+    pingData.push(await ping.getPing(ipAddress.targetIp, 10));
+
+    traceroute.forEach(data => {
+      tracerouteData.push(data);
+    });
+
+    ws.send(JSON.stringify({ pingData: pingData }));
+    ws.send(JSON.stringify({ tracerouteData }));
+    ws.send(JSON.stringify({ done: true }));
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+
+  ws.on("error", error => {
+    console.error("WebSocket error:", error);
+  });
+});
+
+console.log("Server is running on port", port);

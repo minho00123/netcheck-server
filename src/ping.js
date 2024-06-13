@@ -25,11 +25,10 @@ function createICMPPacket(sequenceNumber) {
   return header;
 }
 
-function getPing(target, count, timeout = 1000) {
+async function getPing(target, count, timeout = 1000) {
   return new Promise((resolve, reject) => {
     const socket = raw.createSocket({ protocol: raw.Protocol.ICMP });
     const sendTimes = {};
-    const timeoutHandlers = {};
     const latencies = [];
     let receivedCount = 0;
     let sequenceNumber = 0;
@@ -43,27 +42,40 @@ function getPing(target, count, timeout = 1000) {
 
         latencies.push(latency);
         receivedCount++;
-        clearTimeout(timeoutHandlers[seqNumber]);
 
-        delete sendTimes[seqNumber];
-        delete timeoutHandlers[seqNumber];
+        const result = {
+          sent: count,
+          received: receivedCount,
+          lossRate: ((count - receivedCount) / count) * 100,
+          latencies: [latency],
+        };
+        // Resolve result for each response
+        resolve(result);
+      }
+
+      if (receivedCount === count) {
+        socket.close();
+        const finalResult = {
+          sent: count,
+          received: receivedCount,
+          lossRate: ((count - receivedCount) / count) * 100,
+          latencies,
+        };
+        resolve(finalResult);
       }
     });
 
     const interval = setInterval(() => {
       if (sequenceNumber >= count) {
         clearInterval(interval);
-        Object.keys(timeoutHandlers).forEach(clearTimeout);
-
-        setTimeout(() => {
-          socket.close();
-          resolve({
-            sent: count,
-            received: receivedCount,
-            lossRate: ((count - receivedCount) / count) * 100,
-            latencies,
-          });
-        }, timeout);
+        socket.close();
+        const finalResult = {
+          sent: count,
+          received: receivedCount,
+          lossRate: ((count - receivedCount) / count) * 100,
+          latencies,
+        };
+        resolve(finalResult);
         return;
       }
 
@@ -77,16 +89,12 @@ function getPing(target, count, timeout = 1000) {
         if (err) {
           console.error(err);
           clearInterval(interval);
-          Object.keys(timeoutHandlers).forEach(clearTimeout);
+          socket.close();
+          reject(err);
         }
       });
-
-      timeoutHandlers[sequenceNumber] = setTimeout(() => {
-        delete sendTimes[sequenceNumber];
-        delete timeoutHandlers[sequenceNumber];
-      }, timeout);
     }, 1000);
   });
 }
 
-module.exports = getPing;
+module.exports = { getPing };
