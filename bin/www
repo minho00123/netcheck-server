@@ -10,7 +10,7 @@ const port = normalizePort(process.env.PORT || "443");
 
 app.set("port", port);
 
-const server = https.createServer(options, app);
+const server = https.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 server.listen(port);
