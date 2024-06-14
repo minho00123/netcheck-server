@@ -2,16 +2,22 @@
 
 const app = require("../app");
 const debug = require("debug")("netcheck-server:server");
-const http = require("http");
+const https = require("https");
 const WebSocket = require("ws");
+const fs = require("fs");
 const getTracerouteData = require("../src/traceroute.js");
 const ping = require("../src/ping.js");
 
-const port = normalizePort(process.env.PORT || "8000");
+const options = {
+  key: fs.readFileSync("/path/to/your/private.key"),
+  cert: fs.readFileSync("/path/to/your/certificate.crt"),
+};
+
+const port = normalizePort(process.env.PORT || "443");
 
 app.set("port", port);
 
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const wss = new WebSocket.Server({ server });
 
 server.listen(port);
