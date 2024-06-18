@@ -6,7 +6,7 @@ const https = require("https");
 const WebSocket = require("ws");
 const getTracerouteData = require("../src/traceroute.js");
 const ping = require("../src/ping.js");
-const port = normalizePort(process.env.PORT || "443");
+const port = normalizePort(process.env.PORT || "8080");
 
 app.set("port", port);
 
@@ -74,34 +74,34 @@ async function getIpAddress(url) {
   }
 }
 
-wss.on("connection", ws => {
-  console.log("Client connected");
+// wss.on("connection", ws => {
+//   console.log("Client connected");
 
-  ws.on("message", async message => {
-    const { url } = JSON.parse(message);
-    const ipAddress = await getIpAddress(url);
-    const traceroute = await getTracerouteData(url);
-    const pingData = [];
-    const tracerouteData = [];
+//   ws.on("message", async message => {
+//     const { url } = JSON.parse(message);
+//     const ipAddress = await getIpAddress(url);
+//     const traceroute = await getTracerouteData(url);
+//     const pingData = [];
+//     const tracerouteData = [];
 
-    pingData.push(await ping.getPing(ipAddress.targetIp, 10));
+//     pingData.push(await ping.getPing(ipAddress.targetIp, 10));
 
-    traceroute.forEach(data => {
-      tracerouteData.push(data);
-    });
+//     traceroute.forEach(data => {
+//       tracerouteData.push(data);
+//     });
 
-    ws.send(JSON.stringify({ pingData: pingData }));
-    ws.send(JSON.stringify({ tracerouteData }));
-    ws.send(JSON.stringify({ done: true }));
-  });
+//     ws.send(JSON.stringify({ pingData: pingData }));
+//     ws.send(JSON.stringify({ tracerouteData }));
+//     ws.send(JSON.stringify({ done: true }));
+//   });
 
-  ws.on("close", () => {
-    console.log("Client disconnected");
-  });
+//   ws.on("close", () => {
+//     console.log("Client disconnected");
+//   });
 
-  ws.on("error", error => {
-    console.error("WebSocket error:", error);
-  });
-});
+//   ws.on("error", error => {
+//     console.error("WebSocket error:", error);
+//   });
+// });
 
 console.log("Server is running on port", port);
