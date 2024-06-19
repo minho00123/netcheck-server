@@ -73,23 +73,6 @@ exports.processHistoryIdData = async function (req, res) {
   return historyData;
 };
 
-exports.processPingData = async function (req, res) {
-  const { url, count } = req.body;
-  const ipAddress = await getIpAddress(url);
-  const pingData = await getPing(ipAddress.targetIp, count);
-
-  return pingData;
-};
-
-exports.processTracerouteData = async function (req, res) {
-  const { url } = req.body;
-  const ipAddress = await getIpAddress(url);
-  const data = await getTracerouteData(ipAddress.targetIp);
-  const tracerouteData = await changeTracerouteData(data);
-
-  return tracerouteData;
-};
-
 async function getIpAddress(url) {
   try {
     const regex = /^(https?:\/\/)?/;
@@ -122,3 +105,20 @@ async function changeTracerouteData(tracerouteData) {
 
   return updatedData;
 }
+
+exports.processPingData = async function (req, res) {
+  const { url, count } = req.body;
+  const ipAddress = await getIpAddress(url);
+  const pingData = await getPing(ipAddress.targetIp, count);
+
+  return pingData;
+};
+
+exports.processTracerouteData = async function (req, res) {
+  const { url } = req.body;
+  const ipAddress = await getIpAddress(url);
+  const data = await getTracerouteData(ipAddress.targetIp);
+  const tracerouteData = await changeTracerouteData(data);
+
+  return tracerouteData;
+};
