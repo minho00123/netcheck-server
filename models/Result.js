@@ -24,6 +24,13 @@ const speedSchema = new mongoose.Schema({
   bandwidth: Number,
 });
 
+const pingSchema = new mongoose.Schema({
+  sent: Number,
+  received: Number,
+  lossRate: Number,
+  latencies: Array,
+});
+
 const resultSchema = new mongoose.Schema({
   customId: String,
   url: String,
@@ -33,6 +40,7 @@ const resultSchema = new mongoose.Schema({
   securityData: securitySchema,
   reliabilityData: reliabilitySchema,
   speedData: speedSchema,
+  pingData: pingSchema,
 });
 
 module.exports = mongoose.model("Result", resultSchema);
