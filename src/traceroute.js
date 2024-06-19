@@ -1,19 +1,5 @@
 const raw = require("raw-socket");
 const dgram = require("node:dgram");
-const dnsPromises = require("node:dns").promises;
-
-async function getIpAddress(url) {
-  try {
-    const regex = /^(https?:\/\/)?/;
-    const modifiedUrl = url.replace(regex, "");
-    const { address, family } = await dnsPromises.lookup(modifiedUrl);
-
-    return { targetIp: address, ipVersion: family };
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
 
 async function getTracerouteData(url) {
   return new Promise(async (resolve, reject) => {
@@ -26,15 +12,13 @@ async function getTracerouteData(url) {
     let isUdpSocketClosed = false;
     let isIcmpSocketClosed = false;
 
-    const ipInfo = await getIpAddress(url);
-
-    if (!ipInfo) {
+    if (!url) {
       console.error(`Can't get the IP address of ${url}`);
       resolve({ error: `Can't get the IP address of ${url}` });
       return;
     }
 
-    const { targetIp, ipVersion } = ipInfo;
+    const { targetIp, ipVersion } = url;
     const udpSocket = dgram.createSocket(ipVersion === 6 ? "udp6" : "udp4");
     const icmpSocket = raw.createSocket({ protocol: raw.Protocol.ICMP });
 

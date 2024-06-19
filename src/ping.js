@@ -49,7 +49,7 @@ async function getPing(target, count, timeout = 1000) {
           lossRate: ((count - receivedCount) / count) * 100,
           latencies: [latency],
         };
-        // Resolve result for each response
+
         resolve(result);
       }
 
@@ -97,4 +97,4 @@ async function getPing(target, count, timeout = 1000) {
   });
 }
 
-module.exports = { getPing };
+module.exports = getPing;

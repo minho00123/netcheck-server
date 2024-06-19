@@ -4,7 +4,11 @@ const getWhoisData = require("../src/domain");
 const getHttpHeaderData = require("../src/httpHeader");
 const calculateBandwidth = require("../src/bandwidth");
 const getAvailabilityData = require("../src/availability");
+const getPing = require("../src/ping");
+const getTracerouteData = require("../src/traceroute");
+const axios = require("axios");
 const Result = require("../models/Result");
+const dnsPromises = require("node:dns").promises;
 
 exports.processDataAll = async function (req, res) {
   const { id, url, serverRegion } = req.body;
@@ -68,3 +72,53 @@ exports.processHistoryIdData = async function (req, res) {
 
   return historyData;
 };
+
+exports.processPingData = async function (req, res) {
+  const { url, count } = req.body;
+  const ipAddress = await getIpAddress(url);
+  const pingData = await getPing(ipAddress.targetIp, count);
+
+  return pingData;
+};
+
+exports.processTracerouteData = async function (req, res) {
+  const { url } = req.body;
+  const ipAddress = await getIpAddress(url);
+  const data = await getTracerouteData(ipAddress.targetIp);
+  const tracerouteData = await changeTracerouteData(data);
+
+  return tracerouteData;
+};
+
+async function getIpAddress(url) {
+  try {
+    const regex = /^(https?:\/\/)?/;
+    const modifiedUrl = url.replace(regex, "");
+    const { address, family } = await dnsPromises.lookup(modifiedUrl);
+
+    return { targetIp: address, ipVersion: family };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+async function changeTracerouteData(tracerouteData) {
+  const updatedData = await Promise.all(
+    tracerouteData.map(async data => {
+      const response = await axios(
+        `http://ip-api.com/json/${data.ipAddress}?fields=status,message,country,city,lat,lon,query`,
+      );
+
+      return {
+        ...data,
+        country: response.data.country,
+        city: response.data.city,
+        lat: response.data.lat,
+        lon: response.data.lon,
+      };
+    }),
+  );
+
+  return updatedData;
+}
