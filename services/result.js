@@ -5,20 +5,8 @@ const getHttpHeaderData = require("../src/httpHeader");
 const calculateBandwidth = require("../src/bandwidth");
 const getAvailabilityData = require("../src/availability");
 const Result = require("../models/Result");
+const Traceroute = require("nodejs-traceroute");
 const dnsPromises = require("node:dns").promises;
-
-async function getIpAddress(url) {
-  try {
-    const regex = /^(https?:\/\/)?/;
-    const modifiedUrl = url.replace(regex, "");
-    const { address, family } = await dnsPromises.lookup(modifiedUrl);
-
-    return { targetIp: address, ipVersion: family };
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
 
 exports.processInformationData = async function (req, res) {
   const { customId, url, serverRegion } = req;
@@ -80,6 +68,59 @@ exports.processSpeedData = async function (req, res) {
   await Result.findByIdAndUpdate(customId, { speedData }, { new: true });
 
   return speedData;
+};
+
+async function getIpAddress(url) {
+  try {
+    const regex = /^(https?:\/\/)?/;
+    const modifiedUrl = url.replace(regex, "");
+    const { address } = await dnsPromises.lookup(modifiedUrl);
+
+    return address;
+  } catch (error) {
+    console.error(error);
+
+    return null;
+  }
+}
+
+exports.processTracerouteData = async function (req, res) {
+  const { url } = req;
+  const ipAddress = await getIpAddress(url);
+
+  if (!ipAddress) {
+    throw new Error("Unable to resolve IP address for the URL.");
+  }
+
+  return new Promise((resolve, reject) => {
+    const tracerouteData = [];
+    const tracer = new Traceroute();
+    let hopCount = 0;
+
+    const hopHandler = hop => {
+      hopCount++;
+      tracerouteData.push(hop);
+      if (hopCount >= 20) {
+        tracer.removeListener("hop", hopHandler);
+        resolve(tracerouteData);
+      }
+    };
+
+    const closeHandler = code => {
+      console.log(`Traceroute completed with code ${code}`);
+      resolve(tracerouteData);
+    };
+
+    const errorHandler = err => {
+      console.error("Traceroute error:", err);
+      reject(err);
+    };
+
+    tracer.on("hop", hopHandler);
+    tracer.on("close", closeHandler);
+    tracer.on("error", errorHandler);
+    tracer.trace(ipAddress);
+  });
 };
 
 exports.processHistoryData = async function (req, res) {
