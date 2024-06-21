@@ -6,6 +6,7 @@ const calculateBandwidth = require("../src/bandwidth");
 const getAvailabilityData = require("../src/availability");
 const Result = require("../models/Result");
 const Traceroute = require("nodejs-traceroute");
+const Ping = require("ping");
 const dnsPromises = require("node:dns").promises;
 
 exports.processInformationData = async function (req, res) {
@@ -19,14 +20,14 @@ exports.processInformationData = async function (req, res) {
     city,
     country,
   };
-  const result = new Result({
-    customId,
-    url,
-    serverRegion,
-    informationData,
-  });
+  // const result = new Result({
+  //   customId,
+  //   url,
+  //   serverRegion,
+  //   informationData,
+  // });
 
-  await result.save();
+  // await result.save();
 
   return informationData;
 };
@@ -42,7 +43,7 @@ exports.processSecurityData = async function (req, res) {
     expiryDate,
   };
 
-  await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
+  // await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
 
   return securityData;
 };
@@ -55,7 +56,7 @@ exports.processReliabilityData = async function (req, res) {
     responseTime,
   };
 
-  await Result.findByIdAndUpdate(customId, { reliabilityData }, { new: true });
+  // await Result.findByIdAndUpdate(customId, { reliabilityData }, { new: true });
 
   return reliabilityData;
 };
@@ -65,7 +66,7 @@ exports.processSpeedData = async function (req, res) {
   const { bandwidth } = await calculateBandwidth(url);
   const speedData = { bandwidth: bandwidth.toFixed(2) };
 
-  await Result.findByIdAndUpdate(customId, { speedData }, { new: true });
+  // await Result.findByIdAndUpdate(customId, { speedData }, { new: true });
 
   return speedData;
 };
@@ -121,6 +122,21 @@ exports.processTracerouteData = async function (req, res) {
     tracer.on("error", errorHandler);
     tracer.trace(ipAddress);
   });
+};
+
+exports.processPingData = async function (req, res) {
+  const { url } = req;
+  const ipAddress = await getIpAddress(url);
+
+  if (!ipAddress) {
+    throw new Error("Unable to resolve IP address for the URL.");
+  }
+
+  const data = await Ping.promise.probe(ipAddress, {
+    min_reply: 10,
+  });
+
+  return data;
 };
 
 exports.processHistoryData = async function (req, res) {

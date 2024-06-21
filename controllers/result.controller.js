@@ -5,24 +5,46 @@ const {
   processReliabilityData,
   processSpeedData,
   processTracerouteData,
+  processPingData,
   processHistoryData,
   processHistoryIdData,
 } = require("../services/result");
 
-exports.postDataAll = async function (req, res) {
+exports.postInformationData = async function (req, res) {
   try {
     const informationData = await processInformationData(req.body);
-    const securityData = await processSecurityData(req.body);
-    const reliabilityData = await processReliabilityData(req.body);
-    const speedData = await processSpeedData(req.body);
-    const allData = {
-      informationData,
-      securityData,
-      reliabilityData,
-      speedData,
-    };
 
-    res.status(200).send(allData);
+    res.status(200).send(informationData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postSecurityData = async function (req, res) {
+  try {
+    const securityData = await processSecurityData(req.body);
+
+    res.status(200).send(securityData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postReliabilityData = async function (req, res) {
+  try {
+    const reliabilityData = await processReliabilityData(req.body);
+
+    res.status(200).send(reliabilityData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postSpeedData = async function (req, res) {
+  try {
+    const speedData = await processSpeedData(req.body);
+
+    res.status(200).send(speedData);
   } catch (error) {
     console.error(error);
   }
@@ -58,6 +80,16 @@ exports.postTracerouteData = async function (req, res) {
     }
 
     res.status(200).send(uniqueTracerouteData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postPingData = async function (req, res) {
+  try {
+    const data = await processPingData(req.body);
+
+    res.status(200).send(data);
   } catch (error) {
     console.error(error);
   }
