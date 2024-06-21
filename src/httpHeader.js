@@ -19,7 +19,10 @@ function getHttpHeaderData(url) {
         })
         .on("error", error => {
           console.error(error);
+          reject(error);
         });
+    } else {
+      reject(new Error("URL is required"));
     }
   });
 }

@@ -27,9 +27,9 @@ exports.postSecurityData = async function (req, res) {
     res.status(200).send(securityData);
   } catch (error) {
     console.error(error);
+    res.status(500).send("Error processing security data");
   }
 };
-
 exports.postReliabilityData = async function (req, res) {
   try {
     const reliabilityData = await processReliabilityData(req.body);
