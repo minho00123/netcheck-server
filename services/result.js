@@ -32,28 +32,20 @@ exports.processInformationData = async function (req, res) {
   return informationData;
 };
 
-exports.processSecurityData = async function (req) {
+exports.processSecurityData = async function (req, res) {
   const { customId, url } = req;
+  const { hsts, csp } = await getHttpHeaderData(url);
+  const { issuer, expiryDate } = await getSslData(url);
+  const securityData = {
+    hsts,
+    csp,
+    issuer,
+    expiryDate,
+  };
 
-  try {
-    const { hsts, csp } = await getHttpHeaderData(url);
-    const { issuer, expiryDate } = await getSslData(url);
-    const securityData = {
-      hsts,
-      csp,
-      issuer,
-      expiryDate,
-    };
+  // await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
 
-    console.log("Security data:", securityData); // 디버깅 로그 추가
-
-    // await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
-
-    return securityData;
-  } catch (error) {
-    console.error("Error in processSecurityData:", error); // 에러 로그 추가
-    throw error; // 에러를 호출자에게 전달
-  }
+  return securityData;
 };
 
 exports.processReliabilityData = async function (req, res) {

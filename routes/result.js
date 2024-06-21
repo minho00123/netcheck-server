@@ -17,7 +17,7 @@ router.post("/result/reliability", postReliabilityData);
 router.post("/result/speed", postSpeedData);
 router.post("/result/traceroute", postTracerouteData);
 router.post("/result/ping", postPingData);
-// router.post("/history/all", postHistoryData);
-// router.post("/history/id", postHistoryIdData);
+router.post("/history/all", postHistoryData);
+router.post("/history/id", postHistoryIdData);
 
 module.exports = router;

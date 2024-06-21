@@ -19,9 +19,9 @@ function getSslData(url) {
 
         resolve(sslData);
       } else {
-        const error = new Error("SSL certificate not found");
-        console.error("Error in getSslData:", error);
-        reject(error);
+        const sslData = { issuer: "N/A", expiryDate: "N/A" };
+
+        resolve(sslData);
       }
     });
 
