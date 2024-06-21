@@ -103,13 +103,13 @@ exports.processTracerouteData = async function (req, res) {
       tracerouteData.push(hop);
       if (hopCount >= 20) {
         tracer.removeListener("hop", hopHandler);
-        resolve(tracerouteData);
+        // resolve(tracerouteData);
       }
     };
 
     const closeHandler = code => {
       console.log(`Traceroute completed with code ${code}`);
-      resolve(tracerouteData);
+      // resolve(tracerouteData);
     };
 
     const errorHandler = err => {
