@@ -14,6 +14,24 @@ function getModifiedUrl(url) {
   return match[1];
 }
 
+function makeData(info, name) {
+  const regex = new RegExp(`${name}: (.+)`);
+  const match = info.match(regex);
+
+  if (name.includes("Date")) {
+    if (match) {
+      const date = match[1].trim();
+      const [year, month, day] = date.split("T")[0].split("-");
+
+      return `${month}/${day}/${year}`;
+    } else {
+      return "N/A";
+    }
+  } else {
+    return match ? match[1].trim() : "N/A";
+  }
+}
+
 function getWhoisData(url) {
   return new Promise((resolve, reject) => {
     if (url) {
@@ -32,15 +50,31 @@ function getWhoisData(url) {
 
       client.on("data", data => {
         const info = data.toString();
-        const registrarRegex = /Registrar: (.+)/;
-        const expiryDateRegex = /Registry Expiry Date: (.+)/;
-        const registrarMatch = info.match(registrarRegex);
-        const expiryDateMatch = info.match(expiryDateRegex);
-        const registrar = registrarMatch ? registrarMatch[1].trim() : "Unknown";
-        const date = expiryDateMatch ? expiryDateMatch[1].trim() : "Unknown";
-        const [year, month, day] = date.split("T")[0].split("-");
 
-        resolve({ registrar, registerExpiryDate: `${month}/${day}/${year}` });
+        const domainName = makeData(info, "Domain Name");
+        const domainRegistrar = makeData(info, "Registrar");
+        const domainCreationDate = makeData(info, "Creation Date");
+        const domainUpdatedDate = makeData(info, "Updated Date");
+        const domainExpiryDate = makeData(info, "Registry Expiry Date");
+        const nameServerOrganization = makeData(info, "Registrar WHOIS Server");
+
+        const nameServerRegex = /Name Server: (.+)/g;
+        const nameServers = [];
+        let match;
+
+        while ((match = nameServerRegex.exec(data)) !== null) {
+          nameServers.push(match[1]);
+        }
+
+        resolve({
+          domainName,
+          domainRegistrar,
+          domainCreationDate,
+          domainUpdatedDate,
+          domainExpiryDate,
+          nameServerOrganization,
+          nameServers,
+        });
       });
     }
   });

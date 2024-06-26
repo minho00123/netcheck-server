@@ -1,6 +1,6 @@
 const axios = require("axios");
 const {
-  processInformationData,
+  processDomainData,
   processSecurityData,
   processReliabilityData,
   processSpeedData,
@@ -8,11 +8,33 @@ const {
   processPingData,
   processHistoryData,
   processHistoryIdData,
+  processBasicInformationData,
+  processIpData,
 } = require("../services/result");
 
-exports.postInformationData = async function (req, res) {
+exports.postBasicInformationData = async function (req, res) {
   try {
-    const informationData = await processInformationData(req.body);
+    const basicInformationData = await processBasicInformationData(req.body);
+
+    res.status(200).send(basicInformationData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postIpData = async function (req, res) {
+  try {
+    const ipData = await processIpData(req.body);
+
+    res.status(200).send(ipData);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postDomainData = async function (req, res) {
+  try {
+    const informationData = await processDomainData(req.body);
 
     res.status(200).send(informationData);
   } catch (error) {

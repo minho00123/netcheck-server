@@ -1,5 +1,6 @@
 const getIpData = require("../src/ipAddress");
 const getSslData = require("../src/ssl");
+const getBasicInfo = require("../src/basicInfo");
 const getWhoisData = require("../src/domain");
 const getHttpHeaderData = require("../src/httpHeader");
 const calculateBandwidth = require("../src/bandwidth");
@@ -9,17 +10,29 @@ const Traceroute = require("nodejs-traceroute");
 const Ping = require("ping");
 const dnsPromises = require("node:dns").promises;
 
-exports.processInformationData = async function (req, res) {
-  const { customId, url, serverRegion } = req;
-  const { ipAddress, city, country } = await getIpData(url);
-  const { registrar, registerExpiryDate } = await getWhoisData(url);
-  const informationData = {
-    registrar,
-    registerExpiryDate,
-    ipAddress,
-    city,
-    country,
+exports.processBasicInformationData = async function (req, res) {
+  const { customId, url } = req;
+  const { siteTitle, siteDescription } = await getBasicInfo(url);
+  const { statusCode, responseTime } = await getAvailabilityData(url);
+
+  return {
+    siteTitle,
+    siteDescription,
+    statusCode,
+    responseTime,
   };
+};
+
+exports.processIpData = async function (req, res) {
+  const { customId, url } = req;
+  const data = await getIpData(url);
+
+  return data;
+};
+
+exports.processDomainData = async function (req, res) {
+  const { customId, url, serverRegion } = req;
+  const data = await getWhoisData(url);
   // const result = new Result({
   //   customId,
   //   url,
@@ -29,23 +42,17 @@ exports.processInformationData = async function (req, res) {
 
   // await result.save();
 
-  return informationData;
+  return data;
 };
 
 exports.processSecurityData = async function (req, res) {
   const { customId, url } = req;
-  const { hsts, csp } = await getHttpHeaderData(url);
-  const { issuer, expiryDate } = await getSslData(url);
-  const securityData = {
-    hsts,
-    csp,
-    issuer,
-    expiryDate,
-  };
+  const data = await getSslData(url);
+  console.log(data);
 
   // await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
 
-  return securityData;
+  return data;
 };
 
 exports.processReliabilityData = async function (req, res) {

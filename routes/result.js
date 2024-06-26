@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
-  postInformationData,
+  postDomainData,
   postSecurityData,
   postReliabilityData,
   postSpeedData,
@@ -9,9 +9,13 @@ const {
   postPingData,
   postHistoryData,
   postHistoryIdData,
+  postBasicInformationData,
+  postIpData,
 } = require("../controllers/result.controller");
 
-router.post("/result/information", postInformationData);
+router.post("/result/basicInformation", postBasicInformationData);
+router.post("/result/ipData", postIpData);
+router.post("/result/domain", postDomainData);
 router.post("/result/security", postSecurityData);
 router.post("/result/reliability", postReliabilityData);
 router.post("/result/speed", postSpeedData);

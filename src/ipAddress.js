@@ -1,15 +1,28 @@
 const axios = require("axios");
-const dnsPromises = require("node:dns").promises;
+const dnsPromises = require("dns").promises;
 
 async function getIpAddress(url) {
   try {
     const { address } = await dnsPromises.lookup(url);
 
-    return { targetIp: address };
+    return address;
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching IPv4 address:", error);
 
     return null;
+  }
+}
+
+async function getIPv6Address(url) {
+  try {
+    const { hostname } = new URL(url);
+    const ipv6Address = await dnsPromises.resolve(hostname, "AAAA");
+
+    return ipv6Address[0];
+  } catch (error) {
+    console.error("Error fetching IPv6 address:", error);
+
+    return [];
   }
 }
 
@@ -17,23 +30,29 @@ async function getIpData(url) {
   if (url) {
     const regex = /^(https?:\/\/)?/;
     const modifiedUrl = url.replace(regex, "");
-    const ipInfo = await getIpAddress(modifiedUrl);
+    const ipData = {};
 
-    if (ipInfo) {
+    const ipv4Address = await getIpAddress(modifiedUrl);
+    if (ipv4Address) {
       try {
-        const { targetIp } = ipInfo;
         const locationResponse = await axios(
-          `http://ip-api.com/json/${targetIp}`,
+          `http://ip-api.com/json/${ipv4Address}`,
         );
-        return {
-          ipAddress: targetIp,
-          city: locationResponse.data.city,
-          country: locationResponse.data.country,
-        };
+        ipData.ipv4 = ipv4Address;
+        ipData.city = locationResponse.data.city;
+        ipData.country = locationResponse.data.country;
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching location for IPv4 address:", error);
       }
     }
+
+    const ipv6Addresses = await getIPv6Address(url);
+
+    if (ipv6Addresses) {
+      ipData.ipv6 = ipv6Addresses;
+    }
+
+    return ipData;
   }
 }
 
