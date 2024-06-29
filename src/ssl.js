@@ -97,5 +97,3 @@ function getSslData(url) {
 }
 
 module.exports = getSslData;
-
-getSslData("https://www.naver.com");

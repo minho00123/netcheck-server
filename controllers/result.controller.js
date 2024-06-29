@@ -1,15 +1,16 @@
 const axios = require("axios");
 const {
+  processBasicInformationData,
+  processIpData,
   processDomainData,
   processSecurityData,
   processReliabilityData,
   processSpeedData,
   processTracerouteData,
   processPingData,
-  processHistoryData,
+  processSaveData,
   processHistoryIdData,
-  processBasicInformationData,
-  processIpData,
+  processHistoryData,
 } = require("../services/result");
 
 exports.postBasicInformationData = async function (req, res) {
@@ -75,16 +76,21 @@ exports.postSpeedData = async function (req, res) {
 exports.postTracerouteData = async function (req, res) {
   try {
     const tracerouteData = await processTracerouteData(req.body);
-    const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
-    if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
-      for (const data of uniqueTracerouteData) {
-        const response = await axios(`http://ip-api.com/json/${data.ip}`);
 
-        data.country = response.data.country;
-        data.city = response.data.city;
-        data.lat = response.data.lat;
-        data.lon = response.data.lon;
+    if (tracerouteData) {
+      const uniqueTracerouteData = extractUniqueTracerouteData(tracerouteData);
+      if (uniqueTracerouteData && uniqueTracerouteData.length > 0) {
+        for (const data of uniqueTracerouteData) {
+          const response = await axios(`http://ip-api.com/json/${data.ip}`);
+
+          data.country = response.data.country;
+          data.city = response.data.city;
+          data.lat = response.data.lat;
+          data.lon = response.data.lon;
+        }
       }
+
+      res.status(200).send(uniqueTracerouteData);
     }
 
     function extractUniqueTracerouteData(data) {
@@ -100,8 +106,6 @@ exports.postTracerouteData = async function (req, res) {
 
       return uniqueHops;
     }
-
-    res.status(200).send(uniqueTracerouteData);
   } catch (error) {
     console.error(error);
   }
@@ -117,9 +121,9 @@ exports.postPingData = async function (req, res) {
   }
 };
 
-exports.postHistoryData = async function (req, res) {
+exports.postSaveData = async function (req, res) {
   try {
-    const data = await processHistoryData(req.body);
+    const data = await processSaveData(req.body);
 
     res.status(200).send(data);
   } catch (error) {
@@ -130,6 +134,16 @@ exports.postHistoryData = async function (req, res) {
 exports.postHistoryIdData = async function (req, res) {
   try {
     const data = await processHistoryIdData(req.body);
+
+    res.status(200).send(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+exports.postHistoryData = async function (req, res) {
+  try {
+    const data = await processHistoryData(req.body);
 
     res.status(200).send(data);
   } catch (error) {

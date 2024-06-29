@@ -2,7 +2,6 @@ const getIpData = require("../src/ipAddress");
 const getSslData = require("../src/ssl");
 const getBasicInfo = require("../src/basicInfo");
 const getWhoisData = require("../src/domain");
-const getHttpHeaderData = require("../src/httpHeader");
 const calculateBandwidth = require("../src/bandwidth");
 const getAvailabilityData = require("../src/availability");
 const Result = require("../models/Result");
@@ -11,7 +10,7 @@ const Ping = require("ping");
 const dnsPromises = require("node:dns").promises;
 
 exports.processBasicInformationData = async function (req, res) {
-  const { customId, url } = req;
+  const { url } = req;
   const { siteTitle, siteDescription } = await getBasicInfo(url);
   const { statusCode, responseTime } = await getAvailabilityData(url);
 
@@ -24,56 +23,41 @@ exports.processBasicInformationData = async function (req, res) {
 };
 
 exports.processIpData = async function (req, res) {
-  const { customId, url } = req;
+  const { url } = req;
   const data = await getIpData(url);
 
   return data;
 };
 
 exports.processDomainData = async function (req, res) {
-  const { customId, url, serverRegion } = req;
+  const { url } = req;
   const data = await getWhoisData(url);
-  // const result = new Result({
-  //   customId,
-  //   url,
-  //   serverRegion,
-  //   informationData,
-  // });
-
-  // await result.save();
 
   return data;
 };
 
 exports.processSecurityData = async function (req, res) {
-  const { customId, url } = req;
+  const { url } = req;
   const data = await getSslData(url);
-  console.log(data);
-
-  // await Result.findByIdAndUpdate(customId, { securityData }, { new: true });
 
   return data;
 };
 
 exports.processReliabilityData = async function (req, res) {
-  const { customId, url } = req;
+  const { url } = req;
   const { statusCode, responseTime } = await getAvailabilityData(url);
   const reliabilityData = {
     statusCode,
     responseTime,
   };
 
-  // await Result.findByIdAndUpdate(customId, { reliabilityData }, { new: true });
-
   return reliabilityData;
 };
 
 exports.processSpeedData = async function (req, res) {
-  const { customId, url } = req;
+  const { url } = req;
   const { bandwidth } = await calculateBandwidth(url);
   const speedData = { bandwidth: bandwidth.toFixed(2) };
-
-  // await Result.findByIdAndUpdate(customId, { speedData }, { new: true });
 
   return speedData;
 };
@@ -146,16 +130,34 @@ exports.processPingData = async function (req, res) {
   return data;
 };
 
-exports.processHistoryData = async function (req, res) {
-  const { url } = req;
-  const historyData = await Result.collection.find({ url }).toArray();
+exports.processSaveData = async function (req, res) {
+  const { url, customId, data } = req;
+  let result = await Result.findOne({ customId });
 
-  return historyData;
+  if (result) {
+    result.url = url;
+    result.data = data;
+
+    await result.save();
+  } else {
+    result = new Result({ url, customId, data });
+
+    await result.save();
+  }
+
+  return result;
 };
 
 exports.processHistoryIdData = async function (req, res) {
   const { customId } = req;
   const historyData = await Result.collection.find({ customId }).toArray();
+
+  return historyData;
+};
+
+exports.processHistoryData = async function (req, res) {
+  const { url } = req;
+  const historyData = await Result.collection.find({ url }).toArray();
 
   return historyData;
 };
