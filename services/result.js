@@ -150,14 +150,14 @@ exports.processSaveData = async function (req, res) {
 
 exports.processHistoryIdData = async function (req, res) {
   const { customId } = req;
-  const historyData = await Result.collection.find({ customId }).toArray();
+  const historyData = await Result.find({ customId }).lean().exec();
 
   return historyData;
 };
 
 exports.processHistoryData = async function (req, res) {
   const { url } = req;
-  const historyData = await Result.collection.find({ url }).toArray();
+  const historyData = await Result.find({ url }).lean().exec();
 
   return historyData;
 };
