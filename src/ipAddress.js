@@ -4,11 +4,9 @@ const dnsPromises = require("dns").promises;
 async function getIpAddress(url) {
   try {
     const { address } = await dnsPromises.lookup(url);
-
     return address;
   } catch (error) {
     console.error("Error fetching IPv4 address:", error);
-
     return null;
   }
 }
@@ -16,12 +14,14 @@ async function getIpAddress(url) {
 async function getIPv6Address(url) {
   try {
     const { hostname } = new URL(url);
-    const ipv6Address = await dnsPromises.resolve(hostname, "AAAA");
-
-    return ipv6Address[0];
+    const ipv6Addresses = await dnsPromises.resolve(hostname, "AAAA");
+    return ipv6Addresses;
   } catch (error) {
-    console.error("Error fetching IPv6 address:", error);
-
+    if (error.code === "ENODATA") {
+      console.warn(`No IPv6 address found for hostname: ${url}`);
+    } else {
+      console.error("Error fetching IPv6 address:", error);
+    }
     return [];
   }
 }
@@ -46,9 +46,8 @@ async function getIpData(url) {
   }
 
   const ipv6Addresses = await getIPv6Address(url);
-
-  if (ipv6Addresses) {
-    ipData.ipv6 = ipv6Addresses;
+  if (ipv6Addresses.length > 0) {
+    ipData.ipv6 = ipv6Addresses[0];
   }
 
   return ipData;

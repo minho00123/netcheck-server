@@ -2,57 +2,45 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const basicInformationSchema = new Schema({
-  responseTime: Number,
-  siteDescription: String,
   siteTitle: String,
+  siteDescription: String,
   statusCode: Number,
+  responseTime: Number,
 });
 
 const ipSchema = new Schema({
   ipv4: String,
-  ipv6: String,
   city: String,
   country: String,
+  ipv6: String,
 });
 
 const domainSchema = new Schema({
-  domainCreationDate: String,
-  domainExpiryDate: String,
   domainName: String,
   domainRegistrar: String,
+  domainCreationDate: String,
   domainUpdatedDate: String,
+  domainExpiryDate: String,
   nameServerOrganization: String,
   nameServers: [String],
 });
 
 const pingSchema = new Schema({
-  alive: Boolean,
-  avg: String,
-  host: String,
   inputHost: String,
-  max: String,
-  min: String,
-  numeric_host: String,
+  host: String,
+  alive: Boolean,
   output: String,
-  packetLoss: String,
-  stddev: String,
   time: Number,
   times: [Number],
+  min: String,
+  max: String,
+  avg: String,
+  stddev: String,
+  packetLoss: String,
+  numeric_host: String,
 });
 
 const securitySchema = new Schema({
-  caIssuers: [String],
-  issuer: {
-    country: String,
-    state: String,
-    location: String,
-    organization: String,
-    commonName: String,
-  },
-  ocspServers: [String],
-  publicKey: String,
-  publicKeySize: Number,
-  serialNumber: String,
   subject: {
     country: String,
     state: String,
@@ -60,9 +48,21 @@ const securitySchema = new Schema({
     organization: String,
     commonName: String,
   },
+  issuer: {
+    country: String,
+    state: String,
+    location: String,
+    organization: String,
+    commonName: String,
+  },
   subjectaltname: [String],
+  ocspServers: [String],
+  caIssuers: [String],
+  publicKey: String,
+  publicKeySize: Number,
   validFrom: String,
   validTo: String,
+  serialNumber: String,
 });
 
 const speedSchema = new Schema({

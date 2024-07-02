@@ -9,8 +9,8 @@ const Traceroute = require("nodejs-traceroute");
 const Ping = require("ping");
 const dnsPromises = require("node:dns").promises;
 
-exports.processBasicInformationData = async function (req, res) {
-  const { url } = req;
+exports.processBasicInformationData = async function (body) {
+  const { url } = body;
   const { siteTitle, siteDescription } = await getBasicInfo(url);
   const { statusCode, responseTime } = await getAvailabilityData(url);
 
@@ -22,43 +22,38 @@ exports.processBasicInformationData = async function (req, res) {
   };
 };
 
-exports.processIpData = async function (req, res) {
-  const { url } = req;
+exports.processIpData = async function (body) {
+  const { url } = body;
   const data = await getIpData(url);
-
   return data;
 };
 
-exports.processDomainData = async function (req, res) {
-  const { url } = req;
+exports.processDomainData = async function (body) {
+  const { url } = body;
   const data = await getWhoisData(url);
-
   return data;
 };
 
-exports.processSecurityData = async function (req, res) {
-  const { url } = req;
+exports.processSecurityData = async function (body) {
+  const { url } = body;
   const data = await getSslData(url);
-
   return data;
 };
 
-exports.processReliabilityData = async function (req, res) {
-  const { url } = req;
+exports.processReliabilityData = async function (body) {
+  const { url } = body;
   const { statusCode, responseTime } = await getAvailabilityData(url);
   const reliabilityData = {
     statusCode,
     responseTime,
   };
-
   return reliabilityData;
 };
 
-exports.processSpeedData = async function (req, res) {
-  const { url } = req;
+exports.processSpeedData = async function (body) {
+  const { url } = body;
   const { bandwidth } = await calculateBandwidth(url);
   const speedData = { bandwidth: bandwidth.toFixed(2) };
-
   return speedData;
 };
 
@@ -67,17 +62,15 @@ async function getIpAddress(url) {
     const regex = /^(https?:\/\/)?/;
     const modifiedUrl = url.replace(regex, "");
     const { address } = await dnsPromises.lookup(modifiedUrl);
-
     return address;
   } catch (error) {
     console.error(error);
-
     return null;
   }
 }
 
-exports.processTracerouteData = async function (req, res) {
-  const { url } = req;
+exports.processTracerouteData = async function (body) {
+  const { url } = body;
   const ipAddress = await getIpAddress(url);
 
   if (!ipAddress) {
@@ -115,8 +108,8 @@ exports.processTracerouteData = async function (req, res) {
   });
 };
 
-exports.processPingData = async function (req, res) {
-  const { url } = req;
+exports.processPingData = async function (body) {
+  const { url } = body;
   const ipAddress = await getIpAddress(url);
 
   if (!ipAddress) {
@@ -130,34 +123,22 @@ exports.processPingData = async function (req, res) {
   return data;
 };
 
-exports.processSaveData = async function (req, res) {
-  const { url, customId, data } = req;
-  let result = await Result.findOne({ customId });
+exports.processSaveData = async function (body) {
+  const saveData = await Result.create(body);
 
-  if (result) {
-    result.url = url;
-    result.data = data;
-
-    await result.save();
-  } else {
-    result = new Result({ url, customId, data });
-
-    await result.save();
-  }
-
-  return result;
+  return saveData;
 };
 
-exports.processHistoryIdData = async function (req, res) {
-  const { customId } = req;
-  const historyData = await Result.find({ customId }).lean().exec();
+exports.processHistoryIdData = async function (body) {
+  const { customId } = body;
+  const data = await Result.find({ customId });
 
-  return historyData;
+  return data;
 };
 
-exports.processHistoryData = async function (req, res) {
-  const { url } = req;
-  const historyData = await Result.find({ url }).lean().exec();
+exports.processHistoryData = async function (body) {
+  const { userId } = body;
+  const data = await Result.find({ userId });
 
-  return historyData;
+  return data;
 };
